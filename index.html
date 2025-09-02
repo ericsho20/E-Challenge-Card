@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge QR Web App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Challenge Card</h1>
+            <p>Complete the challenges below and submit your results!</p>
+        </header>
+
+        <form id="challengeForm">
+            <div class="user-info">
+                <label for="userName">Your Name:</label>
+                <input type="text" id="userName" name="userName" required placeholder="Enter your name">
+                
+                <label for="userEmail">Email (optional):</label>
+                <input type="email" id="userEmail" name="userEmail" placeholder="Enter your email">
+            </div>
+
+            <div class="challenges">
+                <h2>📋 Challenge Checklist</h2>
+                
+                <div class="challenge-item">
+                    <input type="checkbox" id="challenge1" name="challenges" value="Take a selfie at the main entrance">
+                    <label for="challenge1">Take a selfie at the main entrance</label>
+                </div>
+
+                <div class="challenge-item">
+                    <input type="checkbox" id="challenge2" name="challenges" value="Find and photograph the oldest building">
+                    <label for="challenge2">Find and photograph the oldest building</label>
+                </div>
+
+                <div class="challenge-item">
+                    <input type="checkbox" id="challenge3" name="challenges" value="Interview someone about their favorite local spot">
+                    <label for="challenge3">Interview someone about their favorite local spot</label>
+                </div>
+
+                <div class="challenge-item">
+                    <input type="checkbox" id="challenge4" name="challenges" value="Try a local food specialty">
+                    <label for="challenge4">Try a local food specialty</label>
+                </div>
+
+                <div class="challenge-item">
+                    <input type="checkbox" id="challenge5" name="challenges" value="Visit the information center">
+                    <label for="challenge5">Visit the information center</label>
+                </div>
+
+                <div class="challenge-item">
+                    <input type="checkbox" id="challenge6" name="challenges" value="Take a group photo with 3+ people">
+                    <label for="challenge6">Take a group photo with 3+ people</label>
+                </div>
+
+                <div class="challenge-item">
+                    <input type="checkbox" id="challenge7" name="challenges" value="Find a hidden gem or secret spot">
+                    <label for="challenge7">Find a hidden gem or secret spot</label>
+                </div>
+
+                <div class="challenge-item">
+                    <input type="checkbox" id="challenge8" name="challenges" value="Share your experience on social media">
+                    <label for="challenge8">Share your experience on social media</label>
+                </div>
+            </div>
+
+            <div class="submit-section">
+                <button type="submit" id="submitBtn">🚀 Submit Challenges</button>
+            </div>
+        </form>
+
+        <div id="message" class="message hidden"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

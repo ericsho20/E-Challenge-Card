@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator - Challenge App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .url-section {
+            margin-bottom: 30px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+            text-align: left;
+        }
+        
+        input[type="url"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 10px 20px 10px;
+            transition: transform 0.2s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .qr-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 12px;
+        }
+        
+        .qr-display {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+            display: inline-block;
+        }
+        
+        .qr-display img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .api-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .api-option {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .api-option h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .api-option button {
+            width: 100%;
+            margin: 5px 0;
+        }
+        
+        .instructions {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .instructions h3 {
+            color: #0c5460;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            margin-left: 20px;
+            color: #0c5460;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .url-display {
+            background: #f1f3f4;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 QR Code Generator</h1>
+        <p class="subtitle">Generate a QR code for your Challenge Web App</p>
+        
+        <div class="url-section">
+            <label for="websiteUrl">Your Netlify Website URL:</label>
+            <input type="url" 
+                   id="websiteUrl" 
+                   placeholder="https://your-app-name.netlify.app" 
+                   value="https://quiet-twilight-380465.netlify.app">
+            
+            <button onclick="testUrl()" id="testBtn">🔗 Test URL First</button>
+        </div>
+        
+        <div class="qr-section">
+            <h3>Choose Your QR Code Generator:</h3>
+            <div class="api-options">
+                <div class="api-option">
+                    <h4>📱 QR Server API</h4>
+                    <button onclick="generateQR('qrserver')">Generate QR Code</button>
+                    <button onclick="downloadQR('qrserver')">Download PNG</button>
+                </div>
+                
+                <div class="api-option">
+                    <h4>🔗 QR Code API</h4>
+                    <button onclick="generateQR('qrcode')">Generate QR Code</button>
+                    <button onclick="downloadQR('qrcode')">Download PNG</button>
+                </div>
+                
+                <div class="api-option">
+                    <h4>📊 Quick Chart</h4>
+                    <button onclick="generateQR('quickchart')">Generate QR Code</button>
+                    <button onclick="downloadQR('quickchart')">Download PNG</button>
+                </div>
+            </div>
+            
+            <div id="qrDisplay" class="hidden">
+                <div class="qr-display">
+                    <img id="qrImage" src="" alt="QR Code">
+                </div>
+                <div class="url-display" id="urlDisplay"></div>
+                <button onclick="printQR()">🖨️ Print QR Code</button>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 How to Use Your QR Code:</h3>
+            <ul>
+                <li><strong>Test First:</strong> Always test your URL before generating the QR code</li>
+                <li><strong>Try Different APIs:</strong> If one doesn't work, try another option above</li>
+                <li><strong>Download:</strong> Right-click the QR code image and "Save Image As" for backup</li>
+                <li><strong>Print Size:</strong> Minimum recommended size is 2x2 inches (5x5 cm)</li>
+                <li><strong>Test Scanning:</strong> Test with multiple devices before distributing</li>
+                <li><strong>Add Instructions:</strong> Include text like "Scan to start the challenge!"</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let currentQRUrl = '';
+        let currentWebUrl = '';
+        
+        function generateQR(apiType) {
+            const url = document.getElementById('websiteUrl').value.trim();
+            
+            if (!url) {
+                alert('Please enter a website URL');
+                return;
+            }
+            
+            if (!isValidUrl(url)) {
+                alert('Please enter a valid URL (must start with https://)');
+                return;
+            }
+            
+            currentWebUrl = url;
+            const encodedUrl = encodeURIComponent(url);
+            let qrApiUrl;
+            
+            switch(apiType) {
+                case 'qrserver':
+                    qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodedUrl}`;
+                    break;
+                case 'qrcode':
+                    qrApiUrl = `https://qr-code-generator-api.herokuapp.com/qr?text=${encodedUrl}&size=300`;
+                    break;
+                case 'quickchart':
+                    qrApiUrl = `https://quickchart.io/qr?text=${encodedUrl}&size=300`;
+                    break;
+                default:
+                    qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodedUrl}`;
+            }
+            
+            currentQRUrl = qrApiUrl;
+            
+            // Display the QR code
+            const qrImage = document.getElementById('qrImage');
+            const qrDisplay = document.getElementById('qrDisplay');
+            const urlDisplay = document.getElementById('urlDisplay');
+            
+            qrImage.src = qrApiUrl;
+            qrImage.onload = function() {
+                qrDisplay.classList.remove('hidden');
+                urlDisplay.textContent = url;
+                console.log('QR code generated successfully');
+            };
+            
+            qrImage.onerror = function() {
+                alert(`Failed to generate QR code with ${apiType} API. Try a different option.`);
+                console.error('QR code generation failed');
+            };
+        }
+        
+        function downloadQR(apiType) {
+            if (!currentWebUrl) {
+                alert('Generate a QR code first');
+                return;
+            }
+            
+            const encodedUrl = encodeURIComponent(currentWebUrl);
+            let downloadUrl;
+            
+            switch(apiType) {
+                case 'qrserver':
+                    downloadUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodedUrl}`;
+                    break;
+                case 'qrcode':
+                    downloadUrl = `https://qr-code-generator-api.herokuapp.com/qr?text=${encodedUrl}&size=500`;
+                    break;
+                case 'quickchart':
+                    downloadUrl = `https://quickchart.io/qr?text=${encodedUrl}&size=500`;
+                    break;
+                default:
+                    downloadUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodedUrl}`;
+            }
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = 'challenge-qr-code.png';
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function printQR() {
+            const qrImage = document.getElementById('qrImage');
+            if (!qrImage.src) {
+                alert('Generate a QR code first');
+                return;
+            }
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Challenge QR Code</title>
+                        <style>
+                            body { 
+                                margin: 0; 
+                                padding: 40px; 
+                                text-align: center; 
+                                font-family: Arial, sans-serif;
+                            }
+                            .qr-container {
+                                page-break-inside: avoid;
+                                margin-bottom: 40px;
+                            }
+                            h1 { 
+                                color: #333; 
+                                margin-bottom: 20px;
+                                font-size: 2.5rem;
+                            }
+                            .instruction { 
+                                color: #666; 
+                                margin-bottom: 30px;
+                                font-size: 1.2rem;
+                                font-weight: 600;
+                            }
+                            img {
+                                width: 400px;
+                                height: 400px;
+                                border: 2px solid #ddd;
+                                padding: 20px;
+                                background: white;
+                            }
+                            .url {
+                                margin-top: 20px;
+                                font-size: 14px;
+                                color: #888;
+                                word-break: break-all;
+                            }
+                            @media print {
+                                body { 
+                                    margin: 0; 
+                                    padding: 20px;
+                                }
+                                .qr-container { 
+                                    page-break-after: always; 
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="qr-container">
+                            <h1>🎯 Challenge QR Code</h1>
+                            <p class="instruction">Scan to start the challenge!</p>
+                            <img src="${qrImage.src}" alt="Challenge QR Code">
+                            <p class="url">${currentWebUrl}</p>
+                        </div>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+            }, 500);
+        }
+        
+        function testUrl() {
+            const url = document.getElementById('websiteUrl').value.trim();
+            
+            if (!url) {
+                alert('Please enter a website URL first');
+                return;
+            }
+            
+            if (!isValidUrl(url)) {
+                alert('Please enter a valid URL (must start with https://)');
+                return;
+            }
+            
+            window.open(url, '_blank');
+        }
+        
+        function isValidUrl(string) {
+            try {
+                const url = new URL(string);
+                return url.protocol === 'https:';
+            } catch (_) {
+                return false;
+            }
+        }
+    </script>
+</body>
+</html>
