@@ -1,27 +1,21 @@
 /**
- * Google Apps Script Web App for Challenge QR Web App
+ * Google Apps Script Web App for Challenge QR Web App - CORS Fixed
  * Deploy this as a Web App with execute permissions set to "Anyone"
- * This version handles both JSON and form data submissions
  */
 
 function doPost(e) {
-  // Add CORS headers
-  const output = processSubmission(e);
-  return output;
+  return processSubmission(e);
 }
 
 function doGet(e) {
-  // Add CORS headers and return status
+  // Return basic status for GET requests
   return ContentService
     .createTextOutput(JSON.stringify({
       message: 'Challenge QR Web App API is running',
       timestamp: new Date().toISOString(),
       status: 'active'
     }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader('Access-Control-Allow-Origin', '*')
-    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-    .setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function processSubmission(e) {
@@ -34,7 +28,7 @@ function processSubmission(e) {
       try {
         data = JSON.parse(e.postData.contents);
       } catch (jsonError) {
-        // Form data
+        // Form data fallback
         data = parseFormData(e.parameter);
       }
     } else if (e.parameter) {
@@ -60,14 +54,15 @@ function processSubmission(e) {
         'Name', 
         'Email',
         'Total Score',
-        'Challenge 1: Selfie at entrance',
-        'Challenge 2: Oldest building',
-        'Challenge 3: Interview local',
-        'Challenge 4: Local food',
-        'Challenge 5: Information center',
-        'Challenge 6: Group photo',
-        'Challenge 7: Hidden gem',
-        'Challenge 8: Social media'
+        'Monkey Business',
+        'Gecko Tower',
+        'Atan\'s Leap',
+        'Acrobat',
+        'Flying Lemur',
+        'Kite Flyer',
+        'SlingShot',
+        'Tubby Racer',
+        'Details'
       ];
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
       
@@ -80,22 +75,37 @@ function processSubmission(e) {
     
     // Prepare the row data
     const timestamp = new Date(data.timestamp || new Date().toISOString());
-    const totalScore = data.totalScore || 0;
+    const totalScore = data.totalScore || data.completedCount || 0;
     const challengeData = data.challengeData || {};
+    
+    // Extract individual challenge counts
+    const challenge1 = (challengeData.challenge1 && challengeData.challenge1.count) || 0;
+    const challenge2 = (challengeData.challenge2 && challengeData.challenge2.count) || 0;
+    const challenge3 = (challengeData.challenge3 && challengeData.challenge3.count) || 0;
+    const challenge4 = (challengeData.challenge4 && challengeData.challenge4.count) || 0;
+    const challenge5 = (challengeData.challenge5 && challengeData.challenge5.count) || 0;
+    const challenge6 = (challengeData.challenge6 && challengeData.challenge6.count) || 0;
+    const challenge7 = (challengeData.challenge7 && challengeData.challenge7.count) || 0;
+    const challenge8 = (challengeData.challenge8 && challengeData.challenge8.count) || 0;
+    
+    // Create details string
+    const details = data.completedChallenges ? data.completedChallenges.join('; ') : 
+                   `C1:${challenge1}, C2:${challenge2}, C3:${challenge3}, C4:${challenge4}, C5:${challenge5}, C6:${challenge6}, C7:${challenge7}, C8:${challenge8}`;
     
     const rowData = [
       timestamp,
       data.userName,
       data.userEmail || '',
       totalScore,
-      (challengeData.challenge1 && challengeData.challenge1.count) || 0,
-      (challengeData.challenge2 && challengeData.challenge2.count) || 0,
-      (challengeData.challenge3 && challengeData.challenge3.count) || 0,
-      (challengeData.challenge4 && challengeData.challenge4.count) || 0,
-      (challengeData.challenge5 && challengeData.challenge5.count) || 0,
-      (challengeData.challenge6 && challengeData.challenge6.count) || 0,
-      (challengeData.challenge7 && challengeData.challenge7.count) || 0,
-      (challengeData.challenge8 && challengeData.challenge8.count) || 0
+      challenge1,
+      challenge2,
+      challenge3,
+      challenge4,
+      challenge5,
+      challenge6,
+      challenge7,
+      challenge8,
+      details
     ];
     
     // Add the row to the sheet
@@ -111,31 +121,26 @@ function processSubmission(e) {
       timestamp: timestamp
     });
     
-    // Return success response with CORS headers
+    // Return success response
     return ContentService
       .createTextOutput(JSON.stringify({
         success: true,
         message: 'Challenge submission recorded successfully',
-        submissionId: sheet.getLastRow() - 1
+        submissionId: sheet.getLastRow() - 1,
+        totalScore: totalScore
       }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeader('Access-Control-Allow-Origin', '*')
-      .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-      .setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
     console.error('Error processing challenge submission:', error);
     
-    // Return error response with CORS headers
+    // Return error response
     return ContentService
       .createTextOutput(JSON.stringify({
         success: false,
         error: 'Failed to process submission: ' + error.message
       }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeader('Access-Control-Allow-Origin', '*')
-      .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-      .setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -143,7 +148,7 @@ function parseFormData(parameter) {
   const data = {
     userName: parameter.userName,
     userEmail: parameter.userEmail,
-    totalScore: parseInt(parameter.totalScore) || 0,
+    totalScore: parseInt(parameter.totalScore) || parseInt(parameter.completedCount) || 0,
     totalChallenges: parseInt(parameter.totalChallenges) || 8,
     timestamp: parameter.timestamp || new Date().toISOString()
   };
@@ -153,6 +158,13 @@ function parseFormData(parameter) {
     data.challengeData = JSON.parse(parameter.challengeData || '{}');
   } catch (e) {
     data.challengeData = {};
+  }
+  
+  // Parse completedChallenges for backward compatibility
+  try {
+    data.completedChallenges = JSON.parse(parameter.completedChallenges || '[]');
+  } catch (e) {
+    data.completedChallenges = [];
   }
   
   return data;
@@ -186,7 +198,6 @@ function getOrCreateSpreadsheet() {
 
 /**
  * Test function to simulate a POST request
- * Run this to test the full doPost functionality
  */
 function testDoPost() {
   const mockData = {
@@ -203,6 +214,7 @@ function testDoPost() {
       challenge7: { name: "Find a hidden gem or secret spot", count: 0 },
       challenge8: { name: "Share your experience on social media", count: 0 }
     },
+    completedChallenges: ["Take a selfie at the main entrance: 5", "Find and photograph the oldest building: 3", "Try a local food specialty: 2", "Visit the information center: 5"],
     totalChallenges: 8,
     timestamp: new Date().toISOString()
   };
@@ -222,49 +234,4 @@ function testDoPost() {
     console.error('doPost test error:', error);
     return { success: false, error: error.message };
   }
-}
-
-/**
- * Helper function to get submission statistics
- */
-function getSubmissionStats() {
-  const spreadsheet = getOrCreateSpreadsheet();
-  const sheet = spreadsheet.getActiveSheet();
-  
-  if (sheet.getLastRow() <= 1) {
-    console.log('No submissions found');
-    return { message: 'No submissions found' };
-  }
-  
-  const data = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
-  
-  const stats = {
-    totalSubmissions: data.length,
-    averageCompletion: 0,
-    topPerformers: []
-  };
-  
-  let totalPercentage = 0;
-  
-  data.forEach(row => {
-    const name = row[1];
-    const completionCount = row[3];
-    const totalChallenges = row[5];
-    const percentage = (completionCount / totalChallenges) * 100;
-    
-    totalPercentage += percentage;
-    
-    if (percentage >= 75) {
-      stats.topPerformers.push({
-        name: name,
-        completion: percentage + '%',
-        challenges: completionCount
-      });
-    }
-  });
-  
-  stats.averageCompletion = Math.round(totalPercentage / data.length) + '%';
-  
-  console.log('Submission Statistics:', JSON.stringify(stats, null, 2));
-  return stats;
 }

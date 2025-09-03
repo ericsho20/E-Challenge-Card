@@ -1,4 +1,4 @@
-const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqgoVsrHrQUW-Iw4Tdbefap3C436GEYPrm35IcExT4OFxp7MAF9hthjYoHxJW5mSTGUw/exec';
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2UM7uo_LFgoWP6_Af9snEI3bT_dAAb_muncR7YA3BYdHXBYXNc6ucAZpglRtThPizjQ/exec';
 
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('challengeForm');
@@ -26,14 +26,21 @@ async function handleFormSubmit(event) {
             throw new Error('Please enter your name');
         }
         
-        if (formData.completedChallenges.length === 0) {
-            throw new Error('Please complete at least one challenge');
+        if (formData.totalScore === 0) {
+            throw new Error('Please enter at least one challenge count');
         }
         
         console.log('About to submit form data:', formData);
         console.log('Using URL:', GOOGLE_APPS_SCRIPT_URL);
         
-        const response = await submitToGoogleSheets(formData);
+        // Try JSON first, then fallback to form submission
+        let response;
+        try {
+            response = await submitToGoogleSheets(formData);
+        } catch (corsError) {
+            console.log('CORS method failed, trying form submission fallback');
+            response = await submitViaForm(formData);
+        }
         
         console.log('Received response:', response);
         
@@ -64,16 +71,37 @@ async function handleFormSubmit(event) {
 function collectFormData() {
     const userName = document.getElementById('userName').value;
     const userEmail = document.getElementById('userEmail').value;
-    const checkboxes = document.querySelectorAll('input[name="challenges"]:checked');
+    const challengeInputs = document.querySelectorAll('input[name="challenges"]');
     
-    const completedChallenges = Array.from(checkboxes).map(checkbox => checkbox.value);
+    const challengeData = {};
+    let totalScore = 0;
+    
+    challengeInputs.forEach((input, index) => {
+        const value = parseInt(input.value) || 0;
+        const challengeName = input.nextElementSibling.textContent.replace(':', '');
+        challengeData[`challenge${index + 1}`] = {
+            name: challengeName,
+            count: value
+        };
+        totalScore += value;
+    });
+    
+    // Prepare data compatible with both old and new Google Apps Script versions
+    const completedChallenges = [];
+    Object.values(challengeData).forEach(challenge => {
+        if (challenge.count > 0) {
+            completedChallenges.push(`${challenge.name}: ${challenge.count}`);
+        }
+    });
     
     return {
         userName: userName.trim(),
         userEmail: userEmail.trim(),
+        challengeData,
+        totalScore,
         completedChallenges,
-        completedCount: completedChallenges.length,
-        totalChallenges: document.querySelectorAll('input[name="challenges"]').length,
+        completedCount: totalScore,
+        totalChallenges: challengeInputs.length,
         timestamp: new Date().toISOString()
     };
 }
@@ -122,7 +150,11 @@ async function submitViaForm(formData) {
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = key;
-            input.value = Array.isArray(value) ? JSON.stringify(value) : value;
+            if (typeof value === 'object' && value !== null) {
+                input.value = JSON.stringify(value);
+            } else {
+                input.value = value;
+            }
             form.appendChild(input);
         });
         
@@ -154,6 +186,6 @@ function resetForm() {
     document.getElementById('challengeForm').reset();
 }
 
-function getChallengeScore(completedCount, totalCount) {
-    return Math.round((completedCount / totalCount) * 100);
+function getChallengeScore(totalScore, maxPossible) {
+    return maxPossible > 0 ? Math.round((totalScore / maxPossible) * 100) : 0;
 }
