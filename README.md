@@ -5,6 +5,8 @@ This overview of the project is to help ESCAPE Trainers to consolidate all of th
 
 <img width="538" height="85" alt="image" src="https://github.com/user-attachments/assets/b90daf8e-35d1-48e6-9a4b-d5b67918a551" />
 
+<img width="364" height="375" alt="image" src="https://github.com/user-attachments/assets/c7092c52-ad55-4963-bc43-daabd878a15b" />
+
 Developer Guideline
 ------------------------------------------------
 1. The QR Code is able to be generated using the qr-generator-simple.html file
