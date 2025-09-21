@@ -1,0 +1,134 @@
+function doPost(e) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSheet();
+
+    console.log('=== GOOGLE APPS SCRIPT DEBUG ===');
+    console.log('e.parameter:', e.parameter);
+    console.log('e.postData:', e.postData);
+
+    // Always start from e.parameter since you’re using x-www-form-urlencoded
+    let data = e.parameter || {};
+
+    // Parse challengeData if it's a string
+    if (typeof data.challengeData === 'string') {
+      try {
+        data.challengeData = JSON.parse(data.challengeData);
+      } catch (err) {
+        console.log('Error parsing challengeData:', err);
+        data.challengeData = {};
+      }
+    }
+
+    // Parse completedChallenges if it's a string
+    if (typeof data.completedChallenges === 'string') {
+      try {
+        data.completedChallenges = JSON.parse(data.completedChallenges);
+      } catch (err) {
+        console.log('Error parsing completedChallenges:', err);
+        data.completedChallenges = [];
+      }
+    }
+
+    // Extract fields
+    const timestamp = new Date();
+    const teamNumber = data.teamNumber || '';
+    const companyName = data.companyName || '';
+    const teamMembers = parseInt(data.teamMembers) || 0;
+    const totalScore = parseFloat(data.totalScore) || 0;
+    const averageScore = parseFloat(data.averageScore) || 0;
+
+    const monkeyBusinessL1 = data?.challengeData?.challenge1?.details?.L1 || 0;
+    const monkeyBusinessL2 = data?.challengeData?.challenge1?.details?.L2 || 0;
+    const monkeyBusinessL3 = data?.challengeData?.challenge1?.details?.L3 || 0;
+
+    const geckoL1 = data?.challengeData?.challenge2?.details?.L1 || 0;
+    const geckoL2 = data?.challengeData?.challenge2?.details?.L2 || 0;
+    const geckoL3 = data?.challengeData?.challenge2?.details?.L3 || 0;
+
+    const atanL1 = data?.challengeData?.challenge3?.details?.L1 || 0;
+    const atanL2 = data?.challengeData?.challenge3?.details?.L2 || 0;
+
+    const acrobat = data?.challengeData?.challenge4?.count || 0;
+    const flyinglemur = data?.challengeData?.challenge5?.count || 0;
+    const kite = data?.challengeData?.challenge6?.count || 0;
+    const slingshot = data?.challengeData?.challenge7?.count || 0;
+    const tubby = data?.challengeData?.challenge8?.count || 0;
+
+    // Completed challenges summary
+    let completedSummary = '';
+    if (Array.isArray(data.completedChallenges)) {
+      completedSummary = data.completedChallenges.join('; ');
+    } else if (typeof data.completedChallenges === 'string') {
+      completedSummary = data.completedChallenges;
+    }
+
+    // Add header row if empty
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow([
+        'Timestamp',
+        'Team Number',
+        'Company Name',
+        'Team Members',
+        'Total Score',
+        'Average Score',
+        'Monkey Business L1',
+        'Monkey Business L2',
+        'Monkey Business L3',
+        'Gecko Tower L1',
+        'Gecko Tower L2',
+        'Gecko Tower L3',
+        'Atan\'s Leap L1',
+        'Atan\'s Leap L2',
+        'Acrobat',
+        'Flying Lemur',
+        'Kite Flyer',
+        'SlingShot',
+        'Tubby Racer',
+        'Completed Summary'
+      ]);
+    }
+
+    // Append data row
+    sheet.appendRow([
+      timestamp,
+      teamNumber,
+      companyName,
+      teamMembers,
+      totalScore,
+      averageScore,
+      monkeyBusinessL1,
+      monkeyBusinessL2,
+      monkeyBusinessL3,
+      geckoL1,
+      geckoL2,
+      geckoL3,
+      atanL1,
+      atanL2,
+      acrobat,
+      flyinglemur,
+      kite,
+      slingshot,
+      tubby,
+      completedSummary
+    ]);
+
+    return ContentService.createTextOutput(
+      JSON.stringify({
+        success: true,
+        message: 'Data submitted successfully',
+        receivedTeam: teamNumber,
+        receivedCompany: companyName
+      })
+    ).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    console.error('Error in doPost:', error);
+    return ContentService.createTextOutput(
+      JSON.stringify({
+        success: false,
+        error: error.message
+      })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+_
